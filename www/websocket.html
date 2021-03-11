@@ -1,0 +1,49 @@
+<!doctype html> 
+<html> 
+<head>
+  <title> WebSocket: Echo Server </title> 
+  <script> 
+  
+  var ws;
+  
+  append = function(text){
+    document.getElementById("eventi_websocket").insertAdjacentHTML('beforeend', 
+    "<li>" + text + ";</li>"
+  );
+  } 
+  function conn(){
+    ws = new WebSocket('ws://localhost:8080/testing?param=ciao'); 
+    ws.onmessage = function(event){
+      append(event.data) 
+    } 
+    ws.onopen = function(){
+      append("connection established") 
+    } 
+    ws.onclose = function(e){
+      append("disconnected "+e+" ->"+e.reason);
+      
+    } 
+    ws.onerror = function(e){
+      append("error "+e);
+    }
+  }
+  function disconn(){
+    ws.close(); 
+   }
+   function send()
+   {
+   		ws.send(document.getElementById("name").value+">"+document.getElementById("text").value);
+   }
+  </script> 
+</head>
+<body>
+<input type="button" value="connect" onclick="conn()"/>
+<input type="button" value="disconnect" onclick="disconn()"/>
+<input type="text" value="YourName" id="name" />
+<input type="text" value="enter text" id="text" />
+<input type="button" value="send" onclick="send()"/>
+<br/> 
+  <ul id="eventi_websocket"> 
+  </ul>
+</body> 
+</html>
