@@ -18,6 +18,7 @@ import java.util.Random;
 import java.util.StringTokenizer;
 
 import com.github.msx80.kitteh.DocumentProducer;
+import com.github.msx80.kitteh.ExceptionHandler;
 import com.github.msx80.kitteh.Method;
 import com.github.msx80.kitteh.Redirection;
 import com.github.msx80.kitteh.WebSocketListener;
@@ -40,14 +41,15 @@ public class ConnectionImpl implements Runnable
     ResponseImpl resp = new ResponseImpl();
 
 	private WebSocketListener wsHandler;
+	private ExceptionHandler exceptionHandler;
     
     
-    public ConnectionImpl(Socket socket, DocumentProducer pageProducer, WebSocketListener wsHandler)
+    public ConnectionImpl(Socket socket, DocumentProducer pageProducer, WebSocketListener wsHandler, ExceptionHandler exceptionHandler)
     {
         this.socket = socket;
         this.pageProducer = pageProducer;
         this.wsHandler = wsHandler;
-       
+        this.exceptionHandler = exceptionHandler;
     }
 
     private static String readLine(BufferedInputStream is, Charset cs) throws IOException
@@ -245,7 +247,7 @@ public class ConnectionImpl implements Runnable
             StreamUtils.readFully(in, b);
            
             String body = new String(b, utf);
-            if(request.getHeaders().get("content-type").equalsIgnoreCase("application/x-www-form-urlencoded"))
+            if("application/x-www-form-urlencoded".equalsIgnoreCase( request.getHeaders().get("content-type")))
             {
             	request.setParameters( stringToParams(body) );
             }
@@ -311,7 +313,17 @@ public class ConnectionImpl implements Runnable
 		OutputStream out = socket.getOutputStream();
 		try
 		{
-	        	pageProducer.produceDocument(req, resp);
+	        	try {
+					pageProducer.produceDocument(req, resp);
+				} catch (Exception e) {
+					// producer could have left some stream open, try close them
+					try {
+						resp.getContent().close();
+					} catch (Exception e1) {
+						// no problem
+					}
+					exceptionHandler.handle(e, resp);
+				}
 	        	sendHeader(out, resp.getHtmlReturnCode(), resp.getContentType(), resp.getContentLength(), resp.isCacheable(), null, resp.getHeaders());
 	        	InputStream cont = resp.getContent();
 	        	if(cont == null) throw new NullPointerException("Response content is null");
@@ -334,7 +346,7 @@ public class ConnectionImpl implements Runnable
 		catch (Exception e)
 		{
 		    // send generic unexpected exception
-		    error(out, e);
+		    System.err.println("Error writing response to socket");
 		}
 		out.flush();
     }

@@ -1,6 +1,6 @@
 package com.github.msx80.kitteh.impl;
 
-import com.github.msx80.kitteh.*;
+import com.github.msx80.kitteh.ConnectionProcessor;
 
 public class RequestThread extends Thread
 {
@@ -16,6 +16,8 @@ public class RequestThread extends Thread
   
     public void run()
     {
+    	//long start = System.currentTimeMillis();
+		//System.out.println("Started serving connection");
 		c.readRequest();
 		if(cp == null)
 		{
@@ -27,7 +29,7 @@ public class RequestThread extends Thread
 		    // else delegate to processor
 		    cp.processConnection(c);
 		}
-		
+		//System.out.println("Finished serving request in "+(System.currentTimeMillis()-start)+" millis.");
     }
 
 }

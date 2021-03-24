@@ -16,6 +16,7 @@ public class WebServer implements Runnable
     private DocumentProducer producer;
     private ConnectionProcessor connectionProcessor = null;
     private WebSocketListener listener;
+	private ExceptionHandler exceptionHandler = new ConciseExceptionHandler();
     /**
      * Create a new WebServer
      * @param producer the object to which the requests will be passed
@@ -77,7 +78,7 @@ public class WebServer implements Runnable
             while (true)
             {
                 Socket socket = serverSocket.accept();
-                ConnectionImpl c = new ConnectionImpl(socket, producer, listener);
+                ConnectionImpl c = new ConnectionImpl(socket, producer, listener, this.exceptionHandler );
                 
                 RequestThread requestThread = new RequestThread(c, connectionProcessor);
                 requestThread.start();

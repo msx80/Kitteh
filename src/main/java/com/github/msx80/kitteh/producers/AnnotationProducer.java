@@ -172,7 +172,7 @@ public class AnnotationProducer implements DocumentProducer {
 		try {
 			ret = m.invoke(instance, values);
 		} catch (InvocationTargetException e) {
-			if(e.getCause() instanceof Exception )throw (Exception) e.getCause();
+			if(e.getTargetException() instanceof Exception) throw (Exception)e.getTargetException();
 			throw e;
 			
 			
