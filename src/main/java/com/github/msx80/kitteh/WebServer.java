@@ -139,6 +139,14 @@ public class WebServer implements Runnable
 		this.listener = listener;
 	}
 
+	public ExceptionHandler getExceptionHandler() {
+		return exceptionHandler;
+	}
+
+	public void setExceptionHandler(ExceptionHandler exceptionHandler) {
+		this.exceptionHandler = exceptionHandler;
+	}
+
    
     
 

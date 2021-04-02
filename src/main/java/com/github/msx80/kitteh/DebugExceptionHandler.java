@@ -3,6 +3,10 @@ package com.github.msx80.kitteh;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+/**
+ * An exception handler that prints the stacktrace on the response.
+ *
+ */
 public class DebugExceptionHandler implements ExceptionHandler {
 
 	@Override
