@@ -23,18 +23,32 @@ How to use Kitteh
 The following is the smallest Kitteh2 program. Other more complex examples 
 are present in the "examples" package.
 
-public class HelloWorld implements DocumentProducer
-{
-	public void produceDocument(Request request, Response response)
-	{
-		String s = "<html><body><h1>Hello World!</h1></body></html>";
-		response.setContent(s);
-	}
+    public class HelloWorld implements DocumentProducer
+    {
+    	public void produceDocument(Request request, Response response)
+    	{
+    		String s = "<html><body><h1>Hello World!</h1></body></html>";
+    		response.setContent(s);
+    	}   
+    
+    	public static void main(String[] args) throws Exception
+    	{
+    		new WebServer( new HelloWorld(), 8080).run();
+    	}
+    }
 
-	public static void main(String[] args) throws Exception
-	{
-		new WebServer( new HelloWorld(), 8080).run();
-	}
-}
+Or with annotations:
 
-
+    public class AnnotatedProducer {
+    
+    	
+    	@Get public void hello(Response response, @NamedArg("name") String name)
+    	{
+    		response.setContent("Greetings to: "+name);
+    	}
+    	
+    	public static void main(String[] args) throws IOException
+    	{
+    		new WebServer( new AnnotationProducer(new AnnotatedProducer()), 8080).run();
+    	}
+    }
