@@ -1,3 +1,6 @@
+[![Release](https://jitpack.io/v/msx80/kitteh.svg)]
+(https://jitpack.io/#msx80/kitteh)
+
 Kitteh, a lightweight pure java webserver
 ==========================================
 
