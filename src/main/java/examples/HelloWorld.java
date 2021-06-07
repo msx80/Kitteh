@@ -3,18 +3,19 @@ package examples;
 import com.github.msx80.kitteh.*;
 
 /**
- * This is the simplest, two line program you can do with Kitteh
+ * This is the simplest program you can do with Kitteh
  *
  */
-public class HelloWorld implements DocumentProducer
+public class HelloWorld 
 {
-	public void produceDocument(Request request, Response response)
-	{
-		response.setContent("<html><body><h1>Hello World!</h1></body></html>");
-	}
-
 	public static void main(String[] args) throws Exception
 	{
-		new WebServer( new HelloWorld(), 8080).run();
+		String html = "<html><body><h1>Hello World!</h1></body></html>";
+		WebServerBuilder
+			.produce( (req, res) -> res.setContent(html) )
+			.port(8080)
+			.run()
+			.waitTermination();
+
 	}
 }

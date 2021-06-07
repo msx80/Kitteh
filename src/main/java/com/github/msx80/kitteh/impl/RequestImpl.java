@@ -1,5 +1,6 @@
 package com.github.msx80.kitteh.impl;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -83,7 +84,7 @@ public class RequestImpl implements Request
 
 	public void setHeaders(Map<String, String> headers)
 	{
-		this.headers = headers;
+		this.headers = Collections.unmodifiableMap( headers );
 	}
 
 	public void setRemoteAddr(String remoteAddr)

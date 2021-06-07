@@ -5,13 +5,13 @@ import java.util.*;
 import com.github.msx80.kitteh.*;
 import com.github.msx80.kitteh.utils.*;
 
-public class Another implements DocumentProducer
+public class Informations implements DocumentProducer
 {
 
 	public void produceDocument(Request request, Response response) throws Exception, Redirection
 	{
         StringBuffer html = new StringBuffer();
-        html.append("<html><body>Don't trust the .html extension :) this is really a dynamic page! <br><br><strong>System properties are:</strong><br><br>");
+        html.append("<html><body>Hello! Here's some dynamically generated info! <br><br><strong>System properties are:</strong><br><br>");
         mapToTable(html, System.getProperties());
         html.append("<br><br>");
         html.append("<strong>Your headers:</strong><br><br>");

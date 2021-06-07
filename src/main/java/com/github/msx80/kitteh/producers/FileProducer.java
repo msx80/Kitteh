@@ -55,9 +55,9 @@ public class FileProducer implements DocumentProducer
 	}
 	private void sendFile(Response response, File file) throws FileNotFoundException, IOException
 	{
-		response.setCacheable(true);
-		response.setContent( new FileInputStream(file), (int)file.length() );
-		response.setContentType( Mime.getMIMEType(file) );
+		response.setCacheable(true)
+				.setContent( new FileInputStream(file), (int)file.length() )
+				.setContentType( Mime.getMIMEType(file) );
 	}
 	public String getDefaultFile() {
 		return defaultFile;

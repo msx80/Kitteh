@@ -9,7 +9,7 @@ public class HtmlEscape
 
     private HtmlEscape ()
     {
-    	// private ctor
+    	
     }
 
     public static String escape(String s)

@@ -1,5 +1,11 @@
 package com.github.msx80.kitteh;
 
+
+/**
+ * An exception handler that only prints a "500 Internal server error" without other details 
+ * 
+ *
+ */
 public class ConciseExceptionHandler implements ExceptionHandler {
 
 	@Override

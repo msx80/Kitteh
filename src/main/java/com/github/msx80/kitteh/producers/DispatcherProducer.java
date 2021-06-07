@@ -16,17 +16,17 @@ import com.github.msx80.kitteh.*;
  * <li>If a DocumentProducer is supplied, it will be used directly. Example:
  * <code>rules.put("index.html", new Welcome());</code>
  * <li>If no rules apply to a given request, the fallback producer is called if defined, otherwise 
- * an exception is thrown (resulting in a 500 error).
+ * a 404 is returned.
  *
  */
 public class DispatcherProducer implements DocumentProducer
 {
-	private Map<Pattern, Object> prules = new HashMap<Pattern, Object>();
-	private DocumentProducer fallback;
+	final private Map<Pattern, Object> prules = new HashMap<Pattern, Object>();
+	final private DocumentProducer fallback;
 	
 	public DispatcherProducer(Map<String, Object> rules) throws Exception
 	{
-		this(rules, null);
+		this(rules, DocumentProducer.ERR_404_PRODUCER);
 	}
 	public DispatcherProducer(Map<String, Object> rules, DocumentProducer fallback) throws Exception
 	{
@@ -86,14 +86,8 @@ public class DispatcherProducer implements DocumentProducer
 			}
 		}
 		
-		if (fallback != null)
-		{
-			fallback.produceDocument(request, response);
-		}
-		else
-		{
-			throw new Exception("Request cannot be dispatched: "+request.getDocumentName());
-		}
 	
+        fallback.produceDocument(request, response);
+		
 	}
 }

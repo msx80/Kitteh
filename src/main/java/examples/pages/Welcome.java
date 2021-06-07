@@ -16,7 +16,7 @@ public class Welcome implements DocumentProducer
         html.append(new Date());
         html.append("<br><br><ul>");
         html.append("<li>see a <a href=\"file.html\">static page</a>");
-        html.append("<li>see another <a href=\"another.html\">dynamic page</a>");
+        html.append("<li>see another <a href=\"another.html?sample=Param\">dynamic page</a>");
         html.append("<li>see some <a href=\"pages/Hello\">automatic dispatch</a> and some <a href=\"pages/TestPage\">more</a>");
         html.append("<li>do some <a href=\"pages/Sum\">math</a>!");
         html.append("<li>see a slooooow <a href=\"slow.html\">page</a>!");

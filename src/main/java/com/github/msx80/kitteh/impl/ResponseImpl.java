@@ -4,9 +4,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
+import com.github.msx80.kitteh.Headers;
 import com.github.msx80.kitteh.Response;
 
 public class ResponseImpl implements Response
@@ -17,87 +20,114 @@ public class ResponseImpl implements Response
 	private int contentLength = 0;
 	private String contentType;
     private boolean cacheable = false;
+	private Headers headers = new Headers();
     
-    private Map<String, String> headers = new HashMap<String, String>();
+    
 	
 	public ResponseImpl()
 	{
 		this.contentType = "text/html";
 	}
 	
+	@Override
 	public int getHtmlReturnCode()
 	{
 		return htmlReturnCode;
 	}
-
-	public void setHtmlReturnCode(int htmlReturnCode)
+	
+	@Override
+	public Response setHtmlReturnCode(int htmlReturnCode)
 	{
 		this.htmlReturnCode = htmlReturnCode;
+		return this;
 	}
 
+	
 	public InputStream getContent()
 	{
 		return content;
 	}
-	public void setContent(String content)
+	
+	@Override
+	public Response setContent(String content)
 	{
 		byte[] arr = content.getBytes();
 		this.content = new ByteArrayInputStream(arr);
 		this.contentLength = arr.length;
+		return this;
 	}
 	
-	public void setContent(String content, Charset charset)
+	@Override
+	public Response setContent(String content, Charset charset)
 	{
 		byte[] arr = content.getBytes(charset);
 		this.content = new ByteArrayInputStream(arr);
 		this.contentLength = arr.length;
+		return this;
 	}
 	
-	public void setContent(InputStream content) throws IOException
+	@Override
+	public Response setContent(InputStream content) throws IOException
 	{
 		this.content = content;
 		this.contentLength = -1;
+		return this;
 	}
-	public void setContent(InputStream content, int length) throws IOException 
+	
+	@Override
+	public Response setContent(InputStream content, int length) throws IOException 
 	{
 		this.content = content;
 		this.contentLength = length;
+		return this;
 	}
 	
-	public void setContent(byte[] content)
+	@Override
+	public Response setContent(byte[] content)
 	{	
 		this.content = new ByteArrayInputStream(content);
 		this.contentLength = content.length;
+		return this;
 	}
 
+	@Override
 	public String getContentType()
 	{
 		return contentType;
 	}
 
-	public void setContentType(String contentType)
-	{
-		this.contentType = contentType;
-	}
-		
-    public Map<String, String> getHeaders()
-    {
-        return headers;
-    }
-
+    
+	@Override
 	public boolean isCacheable()
 	{
 		return cacheable;
 	}
 
-	public void setCacheable(boolean cacheable)
+	@Override
+	public Response setCacheable(boolean cacheable)
 	{
 		this.cacheable = cacheable;
+		return this;
 	}
 
 	public int getContentLength() {
 		return contentLength;
 	}
+
+
+	@Override
+	public Response setContentType(String contentType) {
+			
+		this.contentType = contentType;;
+		return this;
+	}
+
+	@Override
+	public Headers getHeaders() {
+		return headers ;
+	}
+
+
 
 	
 }

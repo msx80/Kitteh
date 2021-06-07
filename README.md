@@ -13,7 +13,7 @@ Features:
 * dispatching
 * parameters and headers parsing
 * serving static or dynamic content
-* SSL support
+* basic SSL support
 * HTML basic authentication
 * etc.
 
@@ -23,32 +23,47 @@ How to use Kitteh
 The following is the smallest Kitteh2 program. Other more complex examples 
 are present in the "examples" package.
 
-    public class HelloWorld implements DocumentProducer
-    {
-    	public void produceDocument(Request request, Response response)
-    	{
-    		String s = "<html><body><h1>Hello World!</h1></body></html>";
-    		response.setContent(s);
-    	}   
-    
-    	public static void main(String[] args) throws Exception
-    	{
-    		new WebServer( new HelloWorld(), 8080).run();
-    	}
-    }
+	public static void main(String[] args) throws Exception
+	{
+		String html = "<html><body><h1>Hello World!</h1></body></html>";
+		WebServerBuilder
+			.produce( (req, res) -> res.setContent(html) )
+			.port(8080)
+			.run()
+			.waitTermination();
+	}
 
 Or with annotations:
 
     public class AnnotatedProducer {
-    
-    	
-    	@Get public void hello(Response response, @NamedArg("name") String name)
-    	{
-    		response.setContent("Greetings to: "+name);
-    	}
-    	
-    	public static void main(String[] args) throws IOException
-    	{
-    		new WebServer( new AnnotationProducer(new AnnotatedProducer()), 8080).run();
-    	}
-    }
+	
+		@Get public void hello(Response response, @NamedArg("name") String name)
+		{
+			response.setContent("Greetings to: "+name);
+		}
+		
+		@Get public String hello2(@NamedArg("name") String name)
+		{
+			return "More greetings to: "+name;
+		}
+		
+		@Get public String sum(@NamedArg("a") Integer a, @NamedArg("b") Integer b)
+		{
+			return "Sum is: " + (a+b);
+		}
+		
+		@Post public String onlypost()
+		{
+			return "Called via POST";
+		}
+		
+		
+		public static void main(String[] args) throws IOException
+		{
+			WebServerBuilder
+				.produce(new AnnotationProducer(new AnnotatedProducer()))
+				.port( 8080)
+				.run()
+				.waitTermination();
+		}
+	}

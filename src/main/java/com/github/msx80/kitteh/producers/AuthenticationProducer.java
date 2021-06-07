@@ -78,9 +78,11 @@ public class AuthenticationProducer implements DocumentProducer
     private void sendAuth(Response response)
     {
         String html = "<HTML><HEAD><TITLE>Error</TITLE><META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=ISO-8859-1\"></HEAD><BODY><H1>401 Unauthorised.</H1></BODY></HTML>";
-        response.setContent(html);
-        response.getHeaders().put("WWW-Authenticate", "Basic realm=\""+realm+"\"");
-        response.setHtmlReturnCode(401);
+        response
+        	.setContent(html)
+        	.setHtmlReturnCode(401)
+        	.getHeaders()
+        		.set("WWW-Authenticate", "Basic realm=\""+realm+"\"");
     }
 
     

@@ -6,11 +6,16 @@ import java.io.FileReader;
 import java.net.InetAddress;
 
 import com.github.msx80.kitteh.DocumentProducer;
-import com.github.msx80.kitteh.WebServer;
+import com.github.msx80.kitteh.WebServerBuilder;
 
+/**
+ * Utility to run a single kitteh dispatching to multiple stuff, so you can create a single instance with multiple jars or something
+ *
+ */
 public class KittehContainer {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception 
+	{
 		if(args.length!=1) throw new RuntimeException("please supply exacly one parameter: the configuration file.");
 		String configFile = args[0];
 		File config = new File(configFile);
@@ -48,17 +53,14 @@ public class KittehContainer {
 		}
 		
 		
-		WebServer w;
+		WebServerBuilder b = WebServerBuilder.produce(kcd).port(port);
 		if(localOnly)
 		{
-			w = new WebServer(kcd, port, InetAddress.getByName(null) /* listen on localhost only */ );
+			// listen on localhost only 
+			b.bindTo(InetAddress.getByName(null) );
 		}
-		else
-		{
-			w = new WebServer(kcd, port);
-		}
-		
-		w.run();
+	
+		b.run().waitTermination();
 	}
 
 	public static void parseLine(KittehContainerDispatcher kcd, String line)

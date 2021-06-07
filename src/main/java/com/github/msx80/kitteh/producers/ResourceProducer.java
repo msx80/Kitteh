@@ -11,6 +11,10 @@ import com.github.msx80.kitteh.Redirection;
 import com.github.msx80.kitteh.Request;
 import com.github.msx80.kitteh.Response;
 
+/**
+ * Produce responses based on resources included in classpath
+ *
+ */
 public class ResourceProducer implements DocumentProducer {
 
 
@@ -20,7 +24,6 @@ public class ResourceProducer implements DocumentProducer {
 	
 	public ResourceProducer(Class<?> resourceClass, String basePath, DocumentProducer fallback) throws Exception
 	{
-		//BaseFolpyWindow.class.getResource("/resources/"+n.iconName) 
 		this.resourceClass = resourceClass;
 		this.basePath = basePath;
 		this.fallback = fallback;
@@ -49,9 +52,10 @@ public class ResourceProducer implements DocumentProducer {
 	}
 	private void sendFile(Response response, InputStream is, String name) throws FileNotFoundException, IOException
 	{
-		response.setCacheable(true);
-		response.setContent( is );
-		response.setContentType( Mime.getMIMEType(new File(name)) );
+		response
+			.setCacheable(true)
+			.setContent( is )
+			.setContentType( Mime.getMIMEType(new File(name)) );
 	}
 
 }

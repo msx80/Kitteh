@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.github.msx80.kitteh.Response;
 import com.github.msx80.kitteh.WebServer;
+import com.github.msx80.kitteh.WebServerBuilder;
 import com.github.msx80.kitteh.producers.AnnotationProducer;
 import com.github.msx80.kitteh.producers.annotations.Get;
 import com.github.msx80.kitteh.producers.annotations.NamedArg;
@@ -35,6 +36,10 @@ public class AnnotatedProducer {
 	
 	public static void main(String[] args) throws IOException
 	{
-		new WebServer( new AnnotationProducer(new AnnotatedProducer()), 8080).run();
+		WebServerBuilder
+			.produce(new AnnotationProducer(new AnnotatedProducer()))
+			.port( 8080)
+			.run()
+			.waitTermination();
 	}
 }

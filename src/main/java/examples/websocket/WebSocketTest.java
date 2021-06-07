@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.github.msx80.kitteh.WebServer;
+import com.github.msx80.kitteh.WebServerBuilder;
 import com.github.msx80.kitteh.WebSocket;
 import com.github.msx80.kitteh.WebSocketListener;
 import com.github.msx80.kitteh.producers.FileProducer;
@@ -19,9 +20,13 @@ public class WebSocketTest implements WebSocketListener {
 	{
 		FileProducer f = new FileProducer("www");
         f.setDefaultFile("websocket.html");
-		WebServer w = new WebServer(f,8080);
-		w.setWebSocketListener(this);
-		w.runAsThread();
+		
+        WebServer w = WebServerBuilder
+			.produce(f)
+			.port(8080)
+			.webSocketListener(this)
+			.run();
+		
 		System.out.println("Server started!");
 		System.out.println("Press ENTER to quit.");
 		

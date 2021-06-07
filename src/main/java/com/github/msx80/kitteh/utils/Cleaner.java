@@ -1,7 +1,9 @@
 package com.github.msx80.kitteh.utils;
 
 public class Cleaner {
-	public static String cleanDocName(String docName) {
+	
+	public static String cleanDocName(String docName)
+	{
 		docName = docName.replace('\\', '/');
         while (docName.startsWith("/"))
         {

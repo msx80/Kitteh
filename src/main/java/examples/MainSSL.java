@@ -9,8 +9,6 @@ import javax.net.ssl.*;
 import com.github.msx80.kitteh.*;
 import com.github.msx80.kitteh.producers.*;
 
-import sun.security.jca.ProviderList;
-import sun.security.jca.Providers;
 import examples.pages.*;
 
 /**
@@ -44,27 +42,12 @@ public class MainSSL
 
 	public static void main(String[] args) throws Exception
 	{
-		Map<String, Object> rules = new HashMap<String, Object>();
-		
-		rules.put("", new Welcome());
-		rules.put("another\\.html", "examples.pages.Another");
-		rules.put("slow\\.html", "examples.pages.Slow");
-		rules.put("pages/(.*)", "examples.pages.dispatch.$1");
-		rules.put("secret/(.*)",  new AuthenticationProducer(new Another(), "myuser", "mypass", "Top Secret Area"));
-		rules.put("breakme", new DocumentProducer()
-		{
-			public void produceDocument(Request request, Response response) throws Exception, Redirection
-			{
-				System.out.println(request.getRemoteAddr());
-				throw new Exception("You broke Kitteh!");
-			}
-		});
-		DocumentProducer f = new FileProducer("www");
-		
-		DocumentProducer d = new DispatcherProducer(rules, f);
-        int port = 8080;
-		WebServer w = new WebServer(d,getSecureServer(port));
-		w.runAsThread();
+	
+        int port = 8443;
+        WebServer w = WebServerBuilder
+			.produce(Main.getProducer())
+			.serverSocket(getSecureServer(port))
+			.run();
 		System.out.println("Server started!");
 		System.out.println("https://localhost:"+port+"/");
 		System.out.println("Press ENTER to quit.");

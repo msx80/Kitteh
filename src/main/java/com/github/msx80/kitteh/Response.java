@@ -1,26 +1,27 @@
 package com.github.msx80.kitteh;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.*;
 
 
 public interface Response
 {
-	public void setContent(byte[] content);
-	public void setContent(String content);
-	public void setContent(String content, Charset charset);
-	public void setContent(InputStream content) throws IOException;
-	public void setContent(InputStream content, int length) throws IOException;
+	public Response setContent(byte[] content);
+	public Response setContent(String content);
+	public Response setContent(String content, Charset charset);
+	public Response setContent(InputStream content) throws IOException;
+	public Response setContent(InputStream content, int length) throws IOException;
 	
 	public String getContentType();
-	public void setContentType(String contentType);
+	public Response setContentType(String contentType);
+
+	public Headers getHeaders();
 	
-    public Map<String, String> getHeaders();
 	public int getHtmlReturnCode();
-	public void setHtmlReturnCode(int htmlReturnCode);
+	public Response setHtmlReturnCode(int htmlReturnCode);
 	
-	public void setCacheable(boolean cacheable);
+	public Response setCacheable(boolean cacheable);
 	public boolean isCacheable();
 	
 }

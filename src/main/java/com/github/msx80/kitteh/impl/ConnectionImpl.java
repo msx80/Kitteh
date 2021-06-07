@@ -4,8 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.URLDecoder;
@@ -19,6 +17,7 @@ import java.util.StringTokenizer;
 
 import com.github.msx80.kitteh.DocumentProducer;
 import com.github.msx80.kitteh.ExceptionHandler;
+import com.github.msx80.kitteh.Headers;
 import com.github.msx80.kitteh.Method;
 import com.github.msx80.kitteh.Redirection;
 import com.github.msx80.kitteh.WebSocketListener;
@@ -27,7 +26,7 @@ import com.github.msx80.kitteh.utils.AlmostInfiniteByteArray;
 import com.github.msx80.kitteh.utils.Cleaner;
 import com.github.msx80.kitteh.utils.StreamUtils;
 
-public class ConnectionImpl implements Runnable
+public class ConnectionImpl
 {
 	private static final Charset utf = Charset.forName("UTF-8");
     private static final String COOKIE_NAME = "session-cookie";
@@ -42,14 +41,16 @@ public class ConnectionImpl implements Runnable
 
 	private WebSocketListener wsHandler;
 	private ExceptionHandler exceptionHandler;
+	private long maxBodySize;
     
     
-    public ConnectionImpl(Socket socket, DocumentProducer pageProducer, WebSocketListener wsHandler, ExceptionHandler exceptionHandler)
+    public ConnectionImpl(Socket socket, DocumentProducer pageProducer, WebSocketListener wsHandler, ExceptionHandler exceptionHandler, long maxBodySize)
     {
         this.socket = socket;
         this.pageProducer = pageProducer;
         this.wsHandler = wsHandler;
         this.exceptionHandler = exceptionHandler;
+        this.maxBodySize = maxBodySize;
     }
 
     private static String readLine(BufferedInputStream is, Charset cs) throws IOException
@@ -105,7 +106,7 @@ public class ConnectionImpl implements Runnable
 
     private static void sendHeader(OutputStream out, int code,
             String contentType, long contentLength, boolean cacheable,
-            String location, Map<String, String> headers) throws IOException
+            String location, Headers headers) throws IOException
     {
         StringBuffer h = new StringBuffer();
 
@@ -130,13 +131,13 @@ public class ConnectionImpl implements Runnable
 	        
 	        if (cacheable)
 	        {
-	        	headers.put("Expires", "Thu, 01 Jan 2100 00:00:00 GMT");
+	        	headers.set("Expires", "Thu, 01 Jan 2100 00:00:00 GMT");
 	        }
 	        else
 	        {
-	        	headers.put("Cache-Control","no-cache");
-	        	headers.put("Pragma","no-cache");
-	        	headers.put("Expires", "Thu, 01 Jan 1970 00:00:00 GMT");
+	        	headers.set("Cache-Control","no-cache");
+	        	headers.set("Pragma","no-cache");
+	        	headers.set("Expires", "Thu, 01 Jan 1970 00:00:00 GMT");
 	        	/*h.append("Last-modified: ");
 	            h.append(new Date().toString());
 	            h.append("\r\n");*/
@@ -156,7 +157,7 @@ public class ConnectionImpl implements Runnable
         }
         
 
-        for (String header : headers.keySet())
+        for (String header : headers.getKeys())
         {
             h.append(header+": "+headers.get(header));
             h.append("\r\n");
@@ -166,7 +167,7 @@ public class ConnectionImpl implements Runnable
         h.append("\r\n");
         out.write(h.toString().getBytes());
     }
-
+/*
     private static void error(OutputStream out, Exception e) throws IOException
     {
     	StringWriter s = new StringWriter();
@@ -177,10 +178,10 @@ public class ConnectionImpl implements Runnable
         e.printStackTrace(pw);
         pw.close();
         byte[] buf = s.getBuffer().toString().getBytes();
-        sendHeader(out, 500, "text/plain", buf.length, false, null, new HashMap<String, String>(0));
+        sendHeader(out, 500, "text/plain", buf.length, false, null, new Headers());
         out.write(buf);
     }
-
+*/
     private Map<String, String> loadReqData(BufferedInputStream in) throws IOException
     {
         HashMap<String, String> x = new HashMap<String, String>();
@@ -225,7 +226,7 @@ public class ConnectionImpl implements Runnable
         String[] req = firstLine.split(" ", 3);
         if (req.length != 3)
         {
-        	System.out.println(req);
+        	System.out.println(firstLine);
             throw new IOException("Non standard request");
         }
         // method and document name.. forget the protocol :P
@@ -242,6 +243,7 @@ public class ConnectionImpl implements Runnable
         	request.setDocumentName( Cleaner.cleanDocName(docName) );
         	
             int size = Integer.parseInt((String) request.getHeaders().get("content-length"));
+            if(size>maxBodySize) throw new SecurityException("Body size greater than allowed");
             byte[] b = new byte[size];
             
             StreamUtils.readFully(in, b);
@@ -308,7 +310,7 @@ public class ConnectionImpl implements Runnable
 		  }
 		  return streamLength;
 	  }
-    private void writeResponse() throws IOException
+    private void doWriteResponse() throws IOException
     {
 		OutputStream out = socket.getOutputStream();
 		try
@@ -324,7 +326,7 @@ public class ConnectionImpl implements Runnable
 					}
 					exceptionHandler.handle(e, resp);
 				}
-	        	sendHeader(out, resp.getHtmlReturnCode(), resp.getContentType(), resp.getContentLength(), resp.isCacheable(), null, resp.getHeaders());
+	        	sendHeader(out, resp.getHtmlReturnCode(), resp.getContentType(), resp.getContentLength(), resp.isCacheable(), null, resp.getHeaders() );
 	        	InputStream cont = resp.getContent();
 	        	if(cont == null) throw new NullPointerException("Response content is null");
 	        	try
@@ -340,12 +342,13 @@ public class ConnectionImpl implements Runnable
 		{
 		    // handle user redirections
 		    String d = "Document moved";
-		    sendHeader(out, 302, "text/plain", d.length(), false, e.getUrl(), new HashMap<String, String>(0));
+		    sendHeader(out, 302, "text/plain", d.length(), false, e.getUrl(), new Headers());
 		    out.write(d.getBytes());
 		}
 		catch (Exception e)
 		{
 		    // send generic unexpected exception
+			e.printStackTrace();
 		    System.err.println("Error writing response to socket");
 		}
 		out.flush();
@@ -385,13 +388,13 @@ public class ConnectionImpl implements Runnable
 		if ((cookie == null) || (!SessionContainer.hasSession(cookie)))
 		{
 			cookie = bakeNewCookie();
-			resp.getHeaders().put("Set-Cookie", COOKIE_NAME+"="+cookie);
+			resp.getHeaders().set("Set-Cookie", COOKIE_NAME+"="+cookie);
 		}
 		req.setSession(SessionContainer.getSession(cookie));
 		req.setSessionId(cookie);
     }
 
-    public void run()
+    public void writeResponse()
     {
 		try
 		{
@@ -404,7 +407,7 @@ public class ConnectionImpl implements Runnable
 			{
 				try
 				{
-					writeResponse();
+					doWriteResponse();
 				}
 				finally
 				{
@@ -436,5 +439,10 @@ public class ConnectionImpl implements Runnable
 		String upg = req.getHeaders().get("upgrade");
 		
 		return "Upgrade".equalsIgnoreCase(con) && "websocket".equalsIgnoreCase(upg);
+	}
+
+	public void closeSocket() throws IOException {
+		socket.close();
+		
 	}
 }

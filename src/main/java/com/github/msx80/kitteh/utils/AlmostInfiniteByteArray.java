@@ -2,6 +2,10 @@ package com.github.msx80.kitteh.utils;
 
 import java.nio.charset.Charset;
 
+/**
+ * Just an auto growing byte array. I don't remember why i called it this fancy way
+ *
+ */
 public class AlmostInfiniteByteArray {
 
     private byte[] array;
@@ -9,7 +13,7 @@ public class AlmostInfiniteByteArray {
 
     public AlmostInfiniteByteArray(int cap) {
         array = new byte[cap];
-            size = 0;
+        size = 0;
     }
 
     public int get(int pos) {

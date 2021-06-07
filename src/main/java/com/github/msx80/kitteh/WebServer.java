@@ -1,88 +1,110 @@
 package com.github.msx80.kitteh;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
-import com.github.msx80.kitteh.impl.*;
+import com.github.msx80.kitteh.impl.ConnectionImpl;
+import com.github.msx80.kitteh.impl.RequestReader;
 
 /**
  * The main Kitteh web server class.
  * 
  *
  */
-public class WebServer implements Runnable
+public final class WebServer
 {
     private ServerSocket serverSocket;
     private DocumentProducer producer;
-    private ConnectionProcessor connectionProcessor = null;
     private WebSocketListener listener;
-	private ExceptionHandler exceptionHandler = new ConciseExceptionHandler();
-    /**
-     * Create a new WebServer
-     * @param producer the object to which the requests will be passed
-     * @param port a port to listen to
-     * @throws Exception
-     */
-    public WebServer(DocumentProducer producer, int port) throws IOException
-    {
-    	this.producer = producer;
-        serverSocket = new ServerSocket(port, 50);
-    }
+	private ExceptionHandler exceptionHandler;
+	
+	private Executor executor;
+	
+	private long maxBodySize;
+	private int timeoutMillis;
+	private boolean ownExecutor;
+	
+	private CompletableFuture<Void> terminated;
+	
+	protected WebServer(DocumentProducer producer, int port, InetAddress address , ServerSocket serverSocket, 
+			Executor executor, ExceptionHandler exceptionHandler,  WebSocketListener listener, long maxBodySize, int timeoutMillis)
+	{
+		try {
+			this.terminated = new CompletableFuture<>();
+			this.producer = producer;
+			this.ownExecutor = executor == null;
+			if(ownExecutor)
+			{
+				executor = Executors.newCachedThreadPool(new ThreadFactory() {
+					
+					@Override
+					public Thread newThread(Runnable r) {
+						Thread t = new Thread(r);
+						t.setName("Kitteh Service Thread");
+						t.setDaemon(true);
+						return t;
+					}
+				});
+			}
+			this.executor = executor;
+			this.exceptionHandler = exceptionHandler;
+			this.listener = listener;
+			this.maxBodySize = maxBodySize;
+			this.timeoutMillis = timeoutMillis;
+			if (serverSocket != null) {
+				this.serverSocket = serverSocket;
+			}
+			else 
+			{
+				this.serverSocket = new ServerSocket(port, 50, address);
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    /**
-     * Create a new WebServer that will be bound to the specified address.
-     * @param producer the object to which the requests will be passed
-     * @param port a port to listen to
-     * @param address an address to listen on
-     * @throws IOException
-     */
-    public WebServer(DocumentProducer producer, int port, InetAddress address) throws IOException
-    {
-    	this.producer = producer;
-    	serverSocket = new ServerSocket(port, 50, address);
-    }
-    
-    /**
-     * Create a new WebServer that will use the supplied, already bound socket to listen for connections.
-     * @param producer the object to which the requests will be passed
-     * @param serverSocket any server socket to accept connections
-     * @throws Exception
-     */
-    public WebServer(DocumentProducer producer, ServerSocket serverSocket)
-    {
-    	this.producer = producer;
-        this.serverSocket = serverSocket;
-    }
     
     /**
      * Start the WebServer in a new thread. The method will return immediately
      * and the WebServer will work on its own thread.
      * @return The thread created for the WebServer
      */
-    public Thread runAsThread()
+    protected void runAsThread()
     {
-    	Thread t = new Thread(this, "Kitteh Server");
-    	t.setDaemon(true);
-    	t.start();
-    	return t;
+    	executor.execute(new Runnable() 
+    	{
+			@Override
+			public void run() {
+				WebServer.this.runNow();
+				
+			}
+		});
     }
     
     /**
      * Start the WebServer. This method will block indefinitely untill another thread
      * calls the close() method on this object. 
      */
-    public void run()
+    private void runNow()
     {
         try
         {
             while (true)
             {
                 Socket socket = serverSocket.accept();
-                ConnectionImpl c = new ConnectionImpl(socket, producer, listener, this.exceptionHandler );
+                socket.setSoTimeout(timeoutMillis);
+                ConnectionImpl c = new ConnectionImpl(socket, producer, listener, this.exceptionHandler, maxBodySize );
                 
-                RequestThread requestThread = new RequestThread(c, connectionProcessor);
-                requestThread.start();
-                
+                RequestReader requestThread = new RequestReader(c);
+                executor.execute(requestThread);
             }
         }
         catch (SocketException e)
@@ -100,55 +122,46 @@ public class WebServer implements Runnable
      */
     public void close()
     {
-        try
-        {
-            serverSocket.close();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
+    	try
+    	{
+    		// close the server socket
+	        try
+	        {
+	            serverSocket.close();
+	        }
+	        catch (Exception e)
+	        {
+	            e.printStackTrace();
+	        }
+	        
+	        // close the executor if it's ours
+	        if(ownExecutor)
+	        {
+		        if(executor instanceof ExecutorService)
+		        {
+		        	try {
+						((ExecutorService) executor).shutdown();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+		        }
+	        }
+	        
+    	}
+    	finally
+    	{
+    		// wake waiting threads
+    		terminated.complete(null);
+    	}
+        
     }
-
-    /**
-     * Set a new producer for this WebServer
-     * @param p a new producer to use
-     */
-    public void setProducer(DocumentProducer p)
+    
+    public void waitTermination()
     {
-        producer = p;
+    	try {
+			terminated.get();
+		} catch (Exception e) {
+			// just give up
+		}
     }
-
-    /**
-     * Set a custom ConnectionProcessor as the current processor.
-     * This will be called to defer request responding to a later time/thread.
-     * If the current processor is null, connections are processed immediately from within 
-     * their own thread. Else, processing is delayed until you call Connection.process().
-     * @param c you can pass null
-     */
-   public void setConnectionProcessor(ConnectionProcessor c)
-   {
-       connectionProcessor = c;
-   }
-
-	public WebSocketListener getWebSocketListener() {
-		return listener;
-	}
-
-	public void setWebSocketListener(WebSocketListener listener) {
-		this.listener = listener;
-	}
-
-	public ExceptionHandler getExceptionHandler() {
-		return exceptionHandler;
-	}
-
-	public void setExceptionHandler(ExceptionHandler exceptionHandler) {
-		this.exceptionHandler = exceptionHandler;
-	}
-
-   
-    
-
-    
 }

@@ -131,7 +131,8 @@ public class AnnotationProducer implements DocumentProducer {
 		fallback.produceDocument(request, response);
 	}
 
-	private void doCallMethod(Request request, Response response, Method m) throws Exception {
+	private void doCallMethod(Request request, Response response, Method m) throws Exception 
+	{
 		try
 		{
 			callMethod(m, request, response);
