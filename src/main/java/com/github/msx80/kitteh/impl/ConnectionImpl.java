@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.StringTokenizer;
+import java.util.concurrent.Executor;
 
 import com.github.msx80.kitteh.DocumentProducer;
 import com.github.msx80.kitteh.ExceptionHandler;
@@ -42,15 +43,17 @@ public class ConnectionImpl
 	private WebSocketListener wsHandler;
 	private ExceptionHandler exceptionHandler;
 	private long maxBodySize;
+	private Executor executor;
     
     
-    public ConnectionImpl(Socket socket, DocumentProducer pageProducer, WebSocketListener wsHandler, ExceptionHandler exceptionHandler, long maxBodySize)
+    public ConnectionImpl(Socket socket, DocumentProducer pageProducer, WebSocketListener wsHandler, ExceptionHandler exceptionHandler, long maxBodySize, Executor executor)
     {
         this.socket = socket;
         this.pageProducer = pageProducer;
         this.wsHandler = wsHandler;
         this.exceptionHandler = exceptionHandler;
         this.maxBodySize = maxBodySize;
+        this.executor = executor;
     }
 
     private static String readLine(BufferedInputStream is, Charset cs) throws IOException
@@ -400,7 +403,8 @@ public class ConnectionImpl
 		{
 			if(isWebSocketRequest())
 			{
-				WebSocketImpl ws = new WebSocketImpl(socket, req, wsHandler);
+				// if it's a websocket, start the handler and return, obviously leave the socket open
+				WebSocketImpl ws = new WebSocketImpl(socket, req, wsHandler, executor);
 				ws.start();				
 			}
 			else

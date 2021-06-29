@@ -1,9 +1,9 @@
 package examples;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 import com.github.msx80.kitteh.Response;
-import com.github.msx80.kitteh.WebServer;
 import com.github.msx80.kitteh.WebServerBuilder;
 import com.github.msx80.kitteh.producers.AnnotationProducer;
 import com.github.msx80.kitteh.producers.annotations.Get;
@@ -33,6 +33,10 @@ public class AnnotatedProducer {
 		return "Called via POST";
 	}
 	
+	@Get public BigDecimal number()
+	{
+		return BigDecimal.valueOf(374284234, 4);
+	}
 	
 	public static void main(String[] args) throws IOException
 	{

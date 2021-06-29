@@ -13,8 +13,9 @@ import com.github.msx80.kitteh.Response;
 
 /**
  * Produce responses based on resources included in classpath
- *
+ * @deprecated this is probably unsafe to use as is, i have to check
  */
+
 public class ResourceProducer implements DocumentProducer {
 
 

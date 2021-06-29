@@ -14,6 +14,7 @@ import com.github.msx80.kitteh.WebServerBuilder;
 import com.github.msx80.kitteh.producers.AuthenticationProducer;
 import com.github.msx80.kitteh.producers.DispatcherProducer;
 import com.github.msx80.kitteh.producers.FileProducer;
+import com.github.msx80.kitteh.producers.LoggingProducer;
 
 import examples.pages.Informations;
 import examples.pages.Welcome;
@@ -61,7 +62,7 @@ public class Main
 		});
 		DocumentProducer f = new FileProducer("www");
 		
-		DocumentProducer d = new DispatcherProducer(rules, f);
+		DocumentProducer d = new LoggingProducer( new DispatcherProducer(rules, f) );
 		return d;
 	}
 	

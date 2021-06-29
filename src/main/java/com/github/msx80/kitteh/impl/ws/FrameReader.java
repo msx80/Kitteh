@@ -34,9 +34,9 @@ public class FrameReader {
 			throw new UnsupportedOperationException("message bigger than 65535 not implemented yet");
 		}
 		
-		String k = new String(data, UTF8);
-		System.out.println(k);
-		System.out.println(k.equals(text));
+		//String k = new String(data, UTF8);
+		//System.out.println(k);
+		//System.out.println(k.equals(text));
 		os.write(data);
 		os.flush();
 	}

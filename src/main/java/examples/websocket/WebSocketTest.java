@@ -10,6 +10,7 @@ import com.github.msx80.kitteh.WebServer;
 import com.github.msx80.kitteh.WebServerBuilder;
 import com.github.msx80.kitteh.WebSocket;
 import com.github.msx80.kitteh.WebSocketListener;
+import com.github.msx80.kitteh.impl.ws.WebSocketCounter;
 import com.github.msx80.kitteh.producers.FileProducer;
 
 public class WebSocketTest implements WebSocketListener {
@@ -24,7 +25,7 @@ public class WebSocketTest implements WebSocketListener {
         WebServer w = WebServerBuilder
 			.produce(f)
 			.port(8080)
-			.webSocketListener(this)
+			.webSocketListener(new WebSocketCounter(this))
 			.run();
 		
 		System.out.println("Server started!");

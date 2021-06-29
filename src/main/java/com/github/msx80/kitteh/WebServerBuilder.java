@@ -12,7 +12,7 @@ public class WebServerBuilder {
 	private DocumentProducer producer;
 	private InetAddress address;
 	private ServerSocket serverSocket;
-	private long maxBodySize;
+	private long maxBodySize = 5*1024*1024;
 	private WebSocketListener webSocketListener;
 	private ExceptionHandler exceptionHandler = new ConciseExceptionHandler();
 	private int timeoutMillis = 5000;

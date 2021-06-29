@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.Executor;
 
 import com.github.msx80.kitteh.Request;
 import com.github.msx80.kitteh.WebSocket;
@@ -21,12 +22,14 @@ public class WebSocketImpl implements WebSocket{
 	private OutputStream out;
 	private InputStream in;
 	private Object data;
+	private Executor executor;
 
-	public WebSocketImpl(Socket socket, Request request, WebSocketListener listener) 
+	public WebSocketImpl(Socket socket, Request request, WebSocketListener listener, Executor ex) 
 	{
 		this.socket = socket;
 		this.request = request;
 		this.listener = listener;
+		this.executor = ex;
 		
 	}
 
@@ -52,7 +55,6 @@ public class WebSocketImpl implements WebSocket{
 	@Override
 	public synchronized void sendBinary(byte[] data) {
 		throw new UnsupportedOperationException("not implemented yet");
-		
 	}
 
 	@Override
@@ -62,7 +64,7 @@ public class WebSocketImpl implements WebSocket{
 	}
 
 	
-	private String createResponseKey(String key)	throws UnsupportedEncodingException, NoSuchAlgorithmException 
+	private String createResponseKey(String key) throws UnsupportedEncodingException, NoSuchAlgorithmException 
 	{
 		byte[] magic = (key+"258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes("ASCII");
 		
@@ -74,9 +76,9 @@ public class WebSocketImpl implements WebSocket{
 		String response = Base64.encodeBytes(res);
 		return response;
 	}
-
 	
 	private void handleWebSocket()  {
+		boolean connectionNotified = false;
 		try {
 
 			out = socket.getOutputStream();
@@ -84,8 +86,9 @@ public class WebSocketImpl implements WebSocket{
 			
 			sendHandshakeResponse();
 		                
+			connectionNotified = true; // set before actual notification so if the listener throws, we still call disconnect on them.
 		    listener.connection(this);
-		      
+		    
 		    while(true)
 	        {
 	        	Object data = FrameReader.readFrame(in);
@@ -117,10 +120,11 @@ public class WebSocketImpl implements WebSocket{
 		finally
 		{
 			try {
-				listener.disconnection(this);
+				if(connectionNotified) listener.disconnection(this);
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
+			// ensure we always close the socket 
 			try {
 				socket.close();
 			} catch (IOException e) {
@@ -148,21 +152,12 @@ public class WebSocketImpl implements WebSocket{
 	}
 
 	public void start() {
-		new Thread(new Runnable(){
-
-			@Override
-			public void run() {
-				handleWebSocket();
-				
-			}
-			
-		}, "WebSocket").start();
+		executor.execute(this::handleWebSocket);
 		
 	}
 
 	@Override
 	public int hashCode() {
-		
 		return this.request.getSessionId().hashCode();
 	}
 

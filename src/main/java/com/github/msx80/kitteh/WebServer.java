@@ -43,16 +43,12 @@ public final class WebServer
 			this.ownExecutor = executor == null;
 			if(ownExecutor)
 			{
-				executor = Executors.newCachedThreadPool(new ThreadFactory() {
-					
-					@Override
-					public Thread newThread(Runnable r) {
+				executor = Executors.newCachedThreadPool(r -> {
 						Thread t = new Thread(r);
 						t.setName("Kitteh Service Thread");
 						t.setDaemon(true);
 						return t;
-					}
-				});
+					});
 			}
 			this.executor = executor;
 			this.exceptionHandler = exceptionHandler;
@@ -79,14 +75,7 @@ public final class WebServer
      */
     protected void runAsThread()
     {
-    	executor.execute(new Runnable() 
-    	{
-			@Override
-			public void run() {
-				WebServer.this.runNow();
-				
-			}
-		});
+    	executor.execute(this::runNow);
     }
     
     /**
@@ -101,7 +90,7 @@ public final class WebServer
             {
                 Socket socket = serverSocket.accept();
                 socket.setSoTimeout(timeoutMillis);
-                ConnectionImpl c = new ConnectionImpl(socket, producer, listener, this.exceptionHandler, maxBodySize );
+                ConnectionImpl c = new ConnectionImpl(socket, producer, listener, this.exceptionHandler, this.maxBodySize, this.executor);
                 
                 RequestReader requestThread = new RequestReader(c);
                 executor.execute(requestThread);

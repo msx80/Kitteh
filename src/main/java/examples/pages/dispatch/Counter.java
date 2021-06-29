@@ -1,15 +1,17 @@
 package examples.pages.dispatch;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.github.msx80.kitteh.*;
 
 public class Counter implements DocumentProducer
 {
-	static int num = 0;
+	static AtomicInteger num = new AtomicInteger(0);
 	
 	public void produceDocument(Request request, Response response) throws Exception, Redirection
 	{
-		num++;
-		response.setContent("<html><body><h1>count is now: "+num+"</h1></body></html>");
+		int i = num.incrementAndGet();
+		response.setContent("<html><body><h1>count is now: "+i+"</h1></body></html>");
 	}
 
 }

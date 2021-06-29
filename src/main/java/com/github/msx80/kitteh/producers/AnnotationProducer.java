@@ -12,12 +12,26 @@ import com.github.msx80.kitteh.Redirection;
 import com.github.msx80.kitteh.Request;
 import com.github.msx80.kitteh.Response;
 import com.github.msx80.kitteh.producers.annotations.AnnotationProducerException;
-import com.github.msx80.kitteh.producers.annotations.Get;
 import com.github.msx80.kitteh.producers.annotations.NamedArg;
 import com.github.msx80.kitteh.producers.annotations.ParamMapper;
-import com.github.msx80.kitteh.producers.annotations.Post;
 import com.github.msx80.kitteh.producers.annotations.ResultHandler;
 
+
+/**
+ * A document producer that dispatch requests to a suitably annotated object.
+ * Each request will search a method with a matching name and an annotation like @Get or @Post
+ * If no match is found, the fallback will be used or a 404 is issue is no fallback specified.
+ * 
+ * Parameters are mapped like this:
+ * - if a parameter is of type Request or Response, it will be filled with the current request or response object
+ * - otherwise, the parameter is expected to have a @NamedArg annotation, and will be filled with the corresponding
+ * parameter from the query string. They are converted from String to the correct type by mappers. Mappers for some common types are provided, 
+ * others can be specified via addParamMapper(). 
+ * 
+ * Return value is sent as a response. Is a ResultHandler for the type is available, it will be converted to a result with the handler, otherwise
+ * the return value will be converted to string via the toString() method. Custom ResultHandlers can be installed with addResultHandler
+ *
+ */
 public class AnnotationProducer implements DocumentProducer {
 
 	Object instance;
@@ -190,7 +204,8 @@ public class AnnotationProducer implements DocumentProducer {
 			}
 			else
 			{
-				throw new AnnotationProducerException("No result handler found for class "+oc.getName()+". Add one with addResultHandler().");
+				//throw new AnnotationProducerException("No result handler found for class "+oc.getName()+". Add one with addResultHandler().");
+				response.setContent(ret.toString());
 			}
 		}
 	}

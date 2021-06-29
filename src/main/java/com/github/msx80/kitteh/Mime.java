@@ -36,4 +36,10 @@ public class Mime
 		if (t==null) t = "application/octet";
 		return t;
 	}
+	
+	public static void add(String extension, String mimeType)
+	{
+		if(!extension.startsWith(".")) extension = "."+extension;
+		MIME_TYPES.put(extension, mimeType);
+	}
 }
