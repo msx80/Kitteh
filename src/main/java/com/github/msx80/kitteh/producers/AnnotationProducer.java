@@ -194,18 +194,25 @@ public class AnnotationProducer implements DocumentProducer {
 		}
 		if(m.getReturnType() != void.class)
 		{
-			// returned a value, we must pass it along to response
-			Class<?> oc = ret.getClass();
-
-			ResultHandler rh = resultHandler.get(oc);
-			if(rh != null)
+			if(ret == null)
 			{
-				rh.handleResult(ret, response);
+				response.setContent("");
 			}
 			else
 			{
-				//throw new AnnotationProducerException("No result handler found for class "+oc.getName()+". Add one with addResultHandler().");
-				response.setContent(ret.toString());
+				// returned a value, we must pass it along to response
+				Class<?> oc = ret.getClass();
+	
+				ResultHandler rh = resultHandler.get(oc);
+				if(rh != null)
+				{
+					rh.handleResult(ret, response);
+				}
+				else
+				{
+					//throw new AnnotationProducerException("No result handler found for class "+oc.getName()+". Add one with addResultHandler().");
+					response.setContent(ret.toString());
+				}
 			}
 		}
 	}

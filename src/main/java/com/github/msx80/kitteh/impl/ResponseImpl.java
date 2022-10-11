@@ -26,7 +26,7 @@ public class ResponseImpl implements Response
 	
 	public ResponseImpl()
 	{
-		this.contentType = "text/html";
+		this.contentType = "text/html; charset=utf-8";
 	}
 	
 	@Override

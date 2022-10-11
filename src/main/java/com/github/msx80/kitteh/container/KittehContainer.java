@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.net.InetAddress;
+import java.net.URL;
+import java.net.URLClassLoader;
 
 import com.github.msx80.kitteh.DocumentProducer;
 import com.github.msx80.kitteh.WebServerBuilder;
@@ -63,15 +65,23 @@ public class KittehContainer {
 		b.run().waitTermination();
 	}
 
-	public static void parseLine(KittehContainerDispatcher kcd, String line)
-			throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	@SuppressWarnings("unchecked")
+	public static void parseLine(KittehContainerDispatcher kcd, String line) throws Exception {
 		if(line.contains(":"))
 		{
 			String[] tok = line.split(":");
-			if(tok.length!=2) throw new IllegalArgumentException("Producer not in the form path:DocumentProducer");
+			if(tok.length!=3) throw new IllegalArgumentException("Producer not in the form path:jar:DocumentProducer");
 			
-			@SuppressWarnings("unchecked")
-			Class<? extends DocumentProducer> cls = (Class<? extends DocumentProducer>) Class.forName(tok[1]);
+			Class<? extends DocumentProducer> cls;
+			if(tok[1].equals("null"))
+			{
+				cls = (Class<? extends DocumentProducer>) Class.forName(tok[2]);
+			}
+			else
+			{
+				URLClassLoader u = new URLClassLoader(new URL[] { new File(tok[1]).toURI().toURL() });
+				cls = (Class<? extends DocumentProducer>) u.loadClass(tok[2]);
+			}
 			
 			DocumentProducer xx = cls.newInstance();
 			kcd.addProducer(tok[0], xx);

@@ -251,8 +251,14 @@ public class ConnectionImpl
             
             StreamUtils.readFully(in, b);
            
-            String body = new String(b, utf);
-            if("application/x-www-form-urlencoded".equalsIgnoreCase( request.getHeaders().get("content-type")))
+            //application/x-www-form-urlencoded; charset=UTF-8
+            String contentTypeString = request.getHeaders().getOrDefault("content-type", "");
+            ContentType ct = ContentType.parse(contentTypeString);
+            
+            String charset = ct.parameters.getOrDefault("charset", "UTF-8");
+        	String body = new String(b, charset);
+        	
+            if(ct.contentType.equalsIgnoreCase("application/x-www-form-urlencoded"))
             {
             	request.setParameters( stringToParams(body) );
             }
