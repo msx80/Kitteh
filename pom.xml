@@ -3,6 +3,7 @@
   <groupId>com.github.msx80</groupId>
   <artifactId>kitteh</artifactId>
   <version>3.1.4</version>
+
   <name>Kitteh</name>
   <description>Kitteh, a lightweight pure java webserver</description>
   <properties>
