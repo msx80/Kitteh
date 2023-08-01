@@ -64,6 +64,7 @@ public interface Request
 	public Method getMethod();
 	
 	public String getBody();
+	public byte[] getBinaryBody();
 
 	public void setLocalAttr(String key, Object val);
 	public Object getLocalAttr(String key);

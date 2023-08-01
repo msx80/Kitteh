@@ -17,6 +17,7 @@ public class RequestImpl implements Request
 	private String remoteAddr = null;
 	private Method method = null;
 	private String body;
+	private byte[] binaryBody;
 	private String pageName;
 	private String pathName;
 	
@@ -138,5 +139,13 @@ public class RequestImpl implements Request
 	@Override
 	public String getPathName() {
 		return pathName;
+	}
+
+	public byte[] getBinaryBody() {
+		return binaryBody;
+	}
+
+	public void setBinaryBody(byte[] binaryBody) {
+		this.binaryBody = binaryBody;
 	}
 }

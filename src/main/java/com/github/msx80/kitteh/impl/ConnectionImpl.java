@@ -18,6 +18,7 @@ import java.util.concurrent.Executor;
 
 import com.github.msx80.kitteh.DocumentProducer;
 import com.github.msx80.kitteh.ExceptionHandler;
+import com.github.msx80.kitteh.Header;
 import com.github.msx80.kitteh.Headers;
 import com.github.msx80.kitteh.Method;
 import com.github.msx80.kitteh.Redirection;
@@ -185,7 +186,7 @@ public class ConnectionImpl
         out.write(buf);
     }
 */
-    private Map<String, String> loadReqData(BufferedInputStream in) throws IOException
+    public static Map<String, String> loadReqData(BufferedInputStream in) throws IOException
     {
         HashMap<String, String> x = new HashMap<String, String>();
         String s = readLine(in, utf);
@@ -253,16 +254,17 @@ public class ConnectionImpl
            
             //application/x-www-form-urlencoded; charset=UTF-8
             String contentTypeString = request.getHeaders().getOrDefault("content-type", "");
-            ContentType ct = ContentType.parse(contentTypeString);
+            Header ct = Header.parse(contentTypeString);
             
-            String charset = ct.parameters.getOrDefault("charset", "UTF-8");
+            String charset = ct.getSub().getOrDefault("charset", "ASCII");
         	String body = new String(b, charset);
         	
-            if(ct.contentType.equalsIgnoreCase("application/x-www-form-urlencoded"))
+            if(ct.getCleanVal().equalsIgnoreCase("application/x-www-form-urlencoded"))
             {
             	request.setParameters( stringToParams(body) );
             }
             request.setBody(body);
+            request.setBinaryBody(b);
         } 
         else
         {	
