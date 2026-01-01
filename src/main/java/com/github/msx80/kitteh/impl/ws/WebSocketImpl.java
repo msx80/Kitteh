@@ -80,7 +80,7 @@ public class WebSocketImpl implements WebSocket{
 	private void handleWebSocket()  {
 		boolean connectionNotified = false;
 		try {
-
+			socket.setSoTimeout(0); // don't timeout on sockets
 			out = socket.getOutputStream();
 			in = socket.getInputStream();
 			
